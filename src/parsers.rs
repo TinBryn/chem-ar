@@ -26,16 +26,16 @@ fn parse_line(
     data: &mut Vec<gfx_maths::Vec3>,
 ) {
     let line = line.trim();
-    if let Some(stripped) = line.strip_prefix("vn") {
+    if let Some(stripped) = line.strip_prefix("vn ") {
         let coords = stripped
             .trim()
             .split_ascii_whitespace()
-            .map(|c| c.parse().unwrap())
+            .map(|c| c.parse().expect("could not parse normal"))
             .collect::<Vec<f32>>();
         assert_eq!(coords.len(), 3);
 
         normals.push(gfx_maths::Vec3::new(coords[0], coords[1], coords[2]));
-    } else if let Some(stripped) = line.strip_prefix('v') {
+    } else if let Some(stripped) = line.strip_prefix("v ") {
         let coords = stripped
             .trim()
             .split_ascii_whitespace()
@@ -44,13 +44,19 @@ fn parse_line(
         assert_eq!(coords.len(), 3);
 
         verticies.push(gfx_maths::Vec3::new(coords[0], coords[1], coords[2]));
-    } else if let Some(stripped) = line.strip_prefix('f') {
+    } else if let Some(stripped) = line.strip_prefix("f ") {
         let coords = stripped
             .trim()
             .split_ascii_whitespace()
             .map(|c| {
-                c.split("//")
-                    .map(|i| i.parse::<usize>().unwrap() - 1)
+                c.split("/")
+                    .map(|i| {
+                        if i.is_empty() {
+                            usize::MAX
+                        } else {
+                            i.parse::<usize>().unwrap() - 1
+                        }
+                    })
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
@@ -58,12 +64,12 @@ fn parse_line(
         if coords.len() == 3 {
             for id in [0, 2, 1] {
                 data.push(verticies[coords[id][0]]);
-                data.push(normals[coords[id][1]]);
+                data.push(normals[coords[id][2]]);
             }
         } else if coords.len() == 4 {
-            for id in [0, 2, 1, 3, 2, 1] {
+            for id in [0, 2, 1, 3, 2, 0] {
                 data.push(verticies[coords[id][0]]);
-                data.push(normals[coords[id][1]]);
+                data.push(normals[coords[id][2]]);
             }
         }
     }

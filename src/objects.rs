@@ -20,7 +20,7 @@ pub struct Cube {
 
 #[allow(dead_code)]
 impl Cube {
-    const CUBE: &'static str = include_str!("../models/cube.obj");
+    const CUBE: &'static str = include_str!("../models/monkey.obj");
 
     pub fn new(gl: &WebGl2RenderingContext) -> Self {
         let program = ::shaders::link_program(gl, CUBE_VERT, CUBE_FRAG).unwrap();
@@ -78,8 +78,8 @@ impl Cube {
         let rotation = rotation_x * rotation_y * rotation_z;
 
         let rotation = Mat4::rotate(rotation);
-        let translation = Mat4::translate(Vec3::new(0.0, 0.0, 3.0));
-        let scale = Mat4::scale(Vec3::new(1.0, 1.0, 1.0));
+        let translation = Mat4::translate(Vec3::new(0.0, 0.0, 4.0));
+        let scale = Mat4::scale(Vec3::new(2.0, 2.0, 2.0));
 
         let transform = translation * scale * rotation;
 

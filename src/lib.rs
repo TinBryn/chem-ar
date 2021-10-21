@@ -41,6 +41,7 @@ pub fn start() -> Client {
         .unwrap();
 
     gl.enable(GL::CULL_FACE);
+    gl.enable(GL::DEPTH_TEST);
 
     Client::new(gl)
 }
