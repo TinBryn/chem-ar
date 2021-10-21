@@ -1,4 +1,4 @@
-use std::slice;
+use std::{mem::size_of, slice};
 
 #[derive(Debug)]
 pub struct Obj {
@@ -49,7 +49,7 @@ fn parse_line(
             .trim()
             .split_ascii_whitespace()
             .map(|c| {
-                c.split("/")
+                c.split('/')
                     .map(|i| {
                         if i.is_empty() {
                             usize::MAX
@@ -77,7 +77,10 @@ fn parse_line(
 
 impl Obj {
     pub fn as_slice(&self) -> &[f32] {
-        let len = self.data.len() * 3;
+        let vec_size = size_of::<gfx_maths::Vec3>();
+        let float_size = size_of::<f32>();
+        assert_eq!(vec_size % float_size, 0);
+        let len = self.data.len() * vec_size / float_size;
         let ptr = self.data.as_ptr() as *const f32;
 
         // # Safety: Vec3 is #[repr(C)] so it is known that the f32s are layed out packed and 3 times the length of the containing Vec
