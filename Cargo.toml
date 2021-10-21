@@ -18,6 +18,8 @@ gfx-maths = "0.2.4"
 js-sys = "0.3.55"
 console_error_panic_hook = { version = "0.1.7", optional = true }
 shaders = { path = "lib/shaders" }
+math-3d = { path = "lib/math-3d" }
+obj-parser = { path = "lib/obj-parser" }
 
 [dependencies.web-sys]
 version = "0.3.55"
