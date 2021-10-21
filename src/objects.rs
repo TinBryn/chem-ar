@@ -20,59 +20,19 @@ pub struct Cube {
 
 #[allow(dead_code)]
 impl Cube {
+    const CUBE: &'static str = include_str!("../models/cube.obj");
+
     pub fn new(gl: &WebGl2RenderingContext) -> Self {
         let program = ::shaders::link_program(gl, CUBE_VERT, CUBE_FRAG).unwrap();
 
-        let corners = [
-            [1.0, 1.0, 1.0],
-            [1.0, 1.0, -1.0],
-            [1.0, -1.0, 1.0],
-            [1.0, -1.0, -1.0],
-            [-1.0, 1.0, 1.0],
-            [-1.0, 1.0, -1.0],
-            [-1.0, -1.0, 1.0],
-            [-1.0, -1.0, -1.0],
-        ];
-
-        let normals = [
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0],
-            [-1.0, 0.0, 0.0],
-            [0.0, -1.0, 0.0],
-            [0.0, 0.0, -1.0],
-        ];
-
-        let faces = [
-            ([0, 1, 2], [2, 1, 3], 0), // +X [0, 1, 2, 3]
-            ([0, 4, 1], [1, 4, 5], 1), // +Y [0, 1, 4, 5]
-            ([0, 2, 4], [4, 2, 6], 2), // +Z [0, 2, 4, 6]
-            ([4, 6, 5], [5, 6, 7], 3), // -X [4, 5, 6, 7]
-            ([2, 3, 6], [6, 3, 7], 4), // -Y [2, 3, 6, 7]
-            ([1, 5, 3], [3, 5, 7], 5), // -Z [1, 3, 5, 7]
-        ];
-
-        let verticies: Vec<f32> = IntoIterator::into_iter(faces)
-            .flat_map(|(first, second, normal)| {
-                let first_face = first
-                    .iter()
-                    .copied()
-                    .map(|index| (corners[index], normals[normal]));
-                let second_face = second
-                    .iter()
-                    .copied()
-                    .map(|index| (corners[index], normals[normal]));
-
-                first_face.chain(second_face).collect::<Vec<_>>()
-            })
-            .flat_map(|(pos, normal)| vec![pos, normal])
-            .flatten()
-            .collect();
+        let obj = crate::parsers::parse_obj(Self::CUBE).unwrap();
 
         let memory_buffer = wasm_bindgen::memory()
             .dyn_into::<js_sys::WebAssembly::Memory>()
             .unwrap()
             .buffer();
+
+        let verticies = obj.as_slice();
 
         let vertices_location = verticies.as_ptr() as u32 / size_of::<f32>() as u32;
         let vert_array = js_sys::Float32Array::new(&memory_buffer).subarray(

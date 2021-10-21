@@ -6,6 +6,7 @@ use web_sys::WebGl2RenderingContext as GL;
 
 mod app_state;
 mod objects;
+mod parsers;
 
 #[wasm_bindgen]
 extern "C" {
