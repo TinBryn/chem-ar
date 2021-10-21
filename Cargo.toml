@@ -2,9 +2,36 @@
 name = "chem-ar"
 version = "0.1.0"
 edition = "2018"
+repository = "https://github.com/TinBryn/chem-ar.git"
+description = "View chemical molecule models in augmented reality on the web with a custom rendering engine"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+default = ["console_error_panic_hook"]
+
 [dependencies]
 wasm-bindgen = "0.2.78"
+gfx-maths = "0.2.4"
+js-sys = "0.3.55"
+console_error_panic_hook = { version = "0.1.7", optional = true }
+shaders = { path = "lib/shaders" }
+
+[dependencies.web-sys]
+version = "0.3.55"
+features = [
+    "Document",
+    "Element",
+    "HtmlElement",
+    "HtmlCanvasElement",
+    "Node",
+    "Window",
+    "WebGl2RenderingContext",
+    "WebGlBuffer",
+    "WebGlShader",
+    "WebGlProgram",
+    "WebGlVertexArrayObject",
+    "WebGlUniformLocation",
+]
