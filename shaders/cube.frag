@@ -20,9 +20,9 @@ void main() {
 
     float specular = dot(normal, H);
 
-    specular = pow(clamp(specular, 0.0, 1.0), 400.0);
+    specular = pow(clamp(specular, 0.0, 1.0), 40.0);
 
     diffuse = clamp(diffuse, 0.3, 1.0);
 
-    FragColor = vec4(vColor * diffuse + specular, 1.0);
+    FragColor = vec4(vColor * diffuse * 0.6 + specular * 0.4, 1.0);
 }
