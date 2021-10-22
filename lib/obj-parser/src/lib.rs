@@ -18,16 +18,16 @@ fn lex_line(line: &str) -> Result<(&str, Vec<&str>), error::Error> {
     }
 }
 
-pub fn parse_obj(input: &str) -> Option<Obj> {
+pub fn parse_obj(input: &str) -> Result<Obj, error::Error> {
     let mut data = vec![];
 
     let mut verticies: Vec<[f32; 3]> = vec![];
     let mut normals: Vec<[f32; 3]> = vec![];
 
     for (index, line) in input.lines().enumerate() {
-        parse_line(index, line, &mut verticies, &mut normals, &mut data).unwrap();
+        parse_line(index, line, &mut verticies, &mut normals, &mut data)?;
     }
-    Some(Obj { data })
+    Ok(Obj { data })
 }
 
 fn parse_line(
