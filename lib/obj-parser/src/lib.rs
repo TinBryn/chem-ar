@@ -1,12 +1,23 @@
-use std::{mem::size_of, slice};
+pub mod error;
+
+use std::{mem::size_of, num::ParseIntError, slice};
+
+use crate::error::Error;
 
 #[derive(Debug)]
 pub struct Obj {
-    #[allow(dead_code)]
     data: Vec<[f32; 3]>,
 }
 
-#[allow(dead_code)]
+fn lex_line(line: &str) -> Result<(&str, Vec<&str>), error::Error> {
+    let tokens: Vec<_> = line.split_ascii_whitespace().collect();
+
+    match tokens[..] {
+        [prefix, ..] => Ok((prefix, tokens[1..].to_owned())),
+        _ => Err(error::Error::invalid(format!("{}", line))),
+    }
+}
+
 pub fn parse_obj(input: &str) -> Option<Obj> {
     let mut data = vec![];
 
@@ -14,7 +25,7 @@ pub fn parse_obj(input: &str) -> Option<Obj> {
     let mut normals: Vec<[f32; 3]> = vec![];
 
     for line in input.lines() {
-        parse_line(line, &mut verticies, &mut normals, &mut data);
+        parse_line(line, &mut verticies, &mut normals, &mut data).unwrap();
     }
     Some(Obj { data })
 }
@@ -24,54 +35,69 @@ fn parse_line(
     verticies: &mut Vec<[f32; 3]>,
     normals: &mut Vec<[f32; 3]>,
     data: &mut Vec<[f32; 3]>,
-) {
+) -> Result<(), error::Error> {
     let line = line.trim();
-    if let Some(stripped) = line.strip_prefix("vn ") {
-        let coords = stripped
-            .trim()
-            .split_ascii_whitespace()
-            .map(|c| c.parse().expect("could not parse normal"))
-            .collect::<Vec<f32>>();
-        assert_eq!(coords.len(), 3);
-
-        normals.push([coords[0], coords[1], coords[2]]);
-    } else if let Some(stripped) = line.strip_prefix("v ") {
-        let coords = stripped
-            .trim()
-            .split_ascii_whitespace()
-            .map(|c| c.parse().unwrap())
-            .collect::<Vec<f32>>();
-        assert_eq!(coords.len(), 3);
-
-        verticies.push([coords[0], coords[1], coords[2]]);
-    } else if let Some(stripped) = line.strip_prefix("f ") {
-        let coords = stripped
-            .trim()
-            .split_ascii_whitespace()
-            .map(|c| {
-                c.split('/')
-                    .map(|i| {
-                        if i.is_empty() {
-                            usize::MAX
-                        } else {
-                            i.parse::<usize>().unwrap() - 1
-                        }
+    let (prefix, args) = lex_line(line)?;
+    match prefix {
+        "vn" => match args[..] {
+            [_x, _y, _z] => {
+                let coords: Result<Vec<f32>, _> = args.into_iter().map(|c| c.parse()).collect();
+                if let [x, y, z] =
+                    coords.map_err(|err| error::Error::new(err.into(), format!("{}", line)))?[..]
+                {
+                    normals.push([x, y, z])
+                }
+                return Ok(());
+            }
+            _ => return Err(Error::invalid(format!("{}", line))),
+        },
+        "v" => match args[..] {
+            [_, _, _] => {
+                let coords: Result<Vec<f32>, _> = args.into_iter().map(|c| c.parse()).collect();
+                if let [x, y, z] =
+                    coords.map_err(|err| error::Error::new(err.into(), format!("{}", line)))?[..]
+                {
+                    verticies.push([x, y, z])
+                }
+                return Ok(());
+            }
+            _ => return Err(Error::invalid(format!("{}", line))),
+        },
+        "f" => match args[..] {
+            [_, _, _] | [_, _, _, _] => {
+                let coords: Result<Vec<Vec<_>>, _> = args
+                    .into_iter()
+                    .filter_map(|c| -> Option<Result<Vec<usize>, ParseIntError>> {
+                        c.split('/')
+                            .map(|i| {
+                                if i.is_empty() {
+                                    None
+                                } else {
+                                    Some(i.parse::<usize>())
+                                }
+                            })
+                            .collect()
                     })
-                    .collect::<Vec<_>>()
-            })
-            .collect::<Vec<_>>();
+                    .collect();
+                let coords: Vec<_> =
+                    coords.map_err(|err| error::Error::new(err.into(), format!("{}", line)))?;
 
-        if coords.len() == 3 {
-            for id in [0, 2, 1] {
-                data.push(verticies[coords[id][0]]);
-                data.push(normals[coords[id][2]]);
+                if coords.len() == 3 {
+                    for id in [0, 2, 1] {
+                        data.push(verticies[coords[id][0] - 1]);
+                        data.push(normals[coords[id][2] - 1]);
+                    }
+                } else if coords.len() == 4 {
+                    for id in [0, 2, 1, 3, 2, 0] {
+                        data.push(verticies[coords[id][0] - 1]);
+                        data.push(normals[coords[id][2] - 1]);
+                    }
+                }
+                return Ok(());
             }
-        } else if coords.len() == 4 {
-            for id in [0, 2, 1, 3, 2, 0] {
-                data.push(verticies[coords[id][0]]);
-                data.push(normals[coords[id][2]]);
-            }
-        }
+            _ => return Err(Error::invalid(format!("{}", line))),
+        },
+        _ => return Ok(()), // ignore any other lines
     }
 }
 
