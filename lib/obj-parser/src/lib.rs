@@ -9,12 +9,15 @@ pub struct Obj {
     data: Vec<[f32; 3]>,
 }
 
-fn lex_line(line: &str) -> Result<(&str, Vec<&str>), error::Error> {
+fn lex_line(index: usize, line: &str) -> Result<(&str, Vec<&str>), error::Error> {
     let tokens: Vec<_> = line.split_ascii_whitespace().collect();
 
     match tokens[..] {
-        [] => Ok(("", vec![])),
         [prefix, ..] => Ok((prefix, tokens[1..].to_owned())),
+        _ => Err(error::Error::invalid(format!(
+            "bad lex on line {}: {}",
+            index, line
+        ))),
     }
 }
 
@@ -25,7 +28,9 @@ pub fn parse_obj(input: &str) -> Result<Obj, error::Error> {
     let mut normals: Vec<[f32; 3]> = vec![];
 
     for (index, line) in input.lines().enumerate() {
-        parse_line(index, line, &mut verticies, &mut normals, &mut data)?;
+        if !line.is_empty() {
+            parse_line(index, line, &mut verticies, &mut normals, &mut data)?;
+        }
     }
     Ok(Obj { data })
 }
@@ -38,13 +43,14 @@ fn parse_line(
     data: &mut Vec<[f32; 3]>,
 ) -> Result<(), error::Error> {
     let line = line.trim();
-    let (prefix, args) = lex_line(line)?;
+    let (prefix, args) = lex_line(index, line)?;
     match prefix {
         "vn" => match args[..] {
             [_x, _y, _z] => {
                 let coords: Result<Vec<f32>, _> = args.into_iter().map(|c| c.parse()).collect();
-                if let [x, y, z] =
-                    coords.map_err(|err| error::Error::new(err.into(), format!("line {}, {}", index, line)))?[..]
+                if let [x, y, z] = coords.map_err(|err| {
+                    error::Error::new(err.into(), format!("line {}, {}", index, line))
+                })?[..]
                 {
                     normals.push([x, y, z])
                 }
@@ -55,8 +61,9 @@ fn parse_line(
         "v" => match args[..] {
             [_, _, _] => {
                 let coords: Result<Vec<f32>, _> = args.into_iter().map(|c| c.parse()).collect();
-                if let [x, y, z] =
-                    coords.map_err(|err| error::Error::new(err.into(), format!("line {}, {}", index, line)))?[..]
+                if let [x, y, z] = coords.map_err(|err| {
+                    error::Error::new(err.into(), format!("line {}, {}", index, line))
+                })?[..]
                 {
                     verticies.push([x, y, z])
                 }
@@ -80,8 +87,9 @@ fn parse_line(
                             .collect()
                     })
                     .collect();
-                let coords: Vec<_> =
-                    coords.map_err(|err| error::Error::new(err.into(), format!("line {}, {}", index, line)))?;
+                let coords: Vec<_> = coords.map_err(|err| {
+                    error::Error::new(err.into(), format!("line {}, {}", index, line))
+                })?;
 
                 if coords.len() == 3 {
                     for id in [0, 2, 1] {
