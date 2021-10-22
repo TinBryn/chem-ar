@@ -25,7 +25,7 @@ impl Cube {
     pub fn new(gl: &WebGl2RenderingContext) -> Self {
         let program = ::shaders::link_program(gl, CUBE_VERT, CUBE_FRAG).unwrap();
 
-        let obj = crate::parsers::parse_obj(Self::CUBE).unwrap();
+        let obj = obj_parser::parse_obj(Self::CUBE).unwrap();
 
         let memory_buffer = wasm_bindgen::memory()
             .dyn_into::<js_sys::WebAssembly::Memory>()
