@@ -75,13 +75,13 @@ fn parse_line(
             [_, _, _] | [_, _, _, _] => {
                 let coords: Result<Vec<Vec<_>>, _> = args
                     .into_iter()
-                    .filter_map(|c| -> Option<Result<Vec<usize>, ParseIntError>> {
+                    .map(|c| -> Result<Vec<usize>, ParseIntError> {
                         c.split('/')
                             .map(|i| {
                                 if i.is_empty() {
-                                    Some(Ok(usize::MAX))
+                                    Ok(usize::MAX)
                                 } else {
-                                    Some(i.parse::<usize>())
+                                    i.parse::<usize>()
                                 }
                             })
                             .collect()
