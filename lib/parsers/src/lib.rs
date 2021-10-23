@@ -1,3 +1,1 @@
-pub mod obj {
-    
-}
+pub mod obj;
