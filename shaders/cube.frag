@@ -8,7 +8,7 @@ in vec3 vPosition;
 
 out vec4 FragColor;
 
-const vec3 lightDirection = normalize(vec3(.2, .3, -.5));
+const vec3 lightDirection = normalize(vec3(0.2, 0.3, -0.5));
 
 void main() {
     vec3 normal = normalize(vNormal);
