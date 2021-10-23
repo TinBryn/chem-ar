@@ -37,4 +37,7 @@ features = [
     "WebGlProgram",
     "WebGlVertexArrayObject",
     "WebGlUniformLocation",
+    "Navigator",
+    "MediaDevices",
+    "MediaStreamConstraints",
 ]
