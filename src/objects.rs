@@ -20,7 +20,7 @@ pub struct Cube {
 
 #[allow(dead_code)]
 impl Cube {
-    const CUBE: &'static str = include_str!("../models/monkey.obj");
+    const CUBE: &'static str = include_str!("../models/cube.obj");
 
     pub fn new(gl: &WebGl2RenderingContext) -> Self {
         let program = ::shaders::link_program(gl, CUBE_VERT, CUBE_FRAG).unwrap();
@@ -78,7 +78,7 @@ impl Cube {
         let rotation = rotation_x * rotation_y * rotation_z;
 
         let rotation = Mat4::rotate(rotation);
-        let translation = Mat4::translate(Vec3::new(0.0, 0.0, 4.0));
+        let translation = Mat4::translate(Vec3::new(0.0, 0.0, 5.0));
         let scale = Mat4::scale(Vec3::new(2.0, 2.0, 2.0));
 
         let transform = translation * scale * rotation;
@@ -86,15 +86,24 @@ impl Cube {
         gl.uniform_matrix4fv_with_f32_array(Some(&self.u_transform), false, &transform.values);
 
         let aspect_ratio = canvas.width / canvas.height;
-        let fov;
-        if canvas.width > canvas.height {
-            fov = 90f32.to_radians();
-        } else {
-            // this sucks, the perspective method is just going to undo this to get what I actually want it to do anyway.
-            fov = (1.0 / aspect_ratio).atan() * 2.0;
-        }
+        let unit_dist_fov = 1.5f32
+            * if canvas.width > canvas.height {
+                1.0
+            } else {
+                1.0 / aspect_ratio
+            };
 
-        let projection = Mat4::perspective_opengl(fov, 0.1, 10.0, aspect_ratio);
+        /*
+        The unit_dist_fov is already exactly what I want the perspective to use and in the
+        coordinate space that makes things easy to work with. But the perspective method
+        does some maths on its arguments to make it "user friendly". So I need to do some
+        calculations that are as complicated as what it's trying to hide from me, but in
+        effect it forces me to do it when in a good abstraction neither I nor the library
+        needed to do anything this complicated at all.
+         */
+        let fov_rad = unit_dist_fov.atan() * 2.0;
+
+        let projection = Mat4::perspective_opengl(fov_rad, 0.1, 10.0, aspect_ratio);
 
         gl.uniform_matrix4fv_with_f32_array(Some(&self.u_projection), false, &projection.values);
 
