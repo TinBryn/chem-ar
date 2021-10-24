@@ -30,20 +30,6 @@ pub fn start() -> Client {
 
     let window = web_sys::window().unwrap();
 
-    let media_devices: web_sys::MediaDevices = window.navigator().media_devices().unwrap();
-
-    let mut media_constraints = web_sys::MediaStreamConstraints::new();
-
-    let video_constraint = JsValue::TRUE;
-
-    media_constraints.video(&video_constraint);
-
-    let media_devices_stream = media_devices
-        .get_user_media_with_constraints(&media_constraints)
-        .unwrap();
-
-    console_log!("{:?}", media_devices_stream);
-
     let document = window.document().unwrap();
     let canvas = document.get_element_by_id("arDisplay").unwrap();
     let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into().unwrap();

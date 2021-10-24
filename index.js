@@ -3,6 +3,21 @@ const rust = import("./pkg");
 const canvas = document.getElementById("arDisplay");
 
 rust.then(m => {
+    let constraints = { video: { ideal: "environment" } };
+
+    let mediaDevices = navigator.mediaDevices;
+
+    if (mediaDevices === undefined) {
+        alert("no media devices");
+    } else {
+        mediaDevices.getUserMedia(constraints).then(d => {
+            console.log("found user media", d);
+        }).catch(error => {
+            console.log("failure to find user media", error);
+        })
+    }
+
+
     let client = m.start();
 
     const FPS_THROTTLE = 1000.0 / 60.0;
